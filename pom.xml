@@ -10,7 +10,27 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>base</module>
+        <module>java-mail</module>
     </modules>
 
+    <properties>
+        <javaMail.version>1.4.7</javaMail.version>
+    </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- email start -->
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>${javaMail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>smtp</artifactId>
+                <version>${javaMail.version}</version>
+            </dependency>
+            <!-- email end -->
+        </dependencies>
+    </dependencyManagement>
 </project>
