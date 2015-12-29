@@ -20,32 +20,53 @@ public class TestAssignCase {
      * @return 外包电催公司ID
      */
     public String getAssignedCompanyCd(String oldCompanyCd, List<AssignRec> assignRecs) {
-        // 分未委外过的案件
-        //if (oldCompanyCd == null) {// 委外新案件
-        //    for (AssignRec r : assignRecs) {
-        //        if (r.currentNum < r.totalNum) {
-        //            r.currentNum++;
-        //            return r.companyCd;
-        //        }
-        //    }
-        //}
-
         // 分曾经委外过的案件
         for (AssignRec r : assignRecs) {
             if (r.currentNum < r.totalNum && !r.companyCd.equals(oldCompanyCd)) {
                 r.currentNum++;
-                return r.companyCd;
+                oldCompanyCd = getRandomEntrustCompanyCd(oldCompanyCd, assignRecs);
+                if (oldCompanyCd == null || "".equals(oldCompanyCd)) {
+                    break;
+                }
+                return oldCompanyCd;
             }
         }
 
-        // 查漏补全
-        for (AssignRec r : assignRecs) {
-            if (r.currentNum == r.totalNum) {
-                continue;
+        // 分未委外过的案件
+        if (oldCompanyCd == null || "".equals(oldCompanyCd)) {// 委外新案件
+            for (AssignRec r : assignRecs) {
+                if (r.currentNum < r.totalNum) {
+                    r.currentNum++;
+                    return r.companyCd;
+                }
             }
-            return getAssignedCompanyCd("", assignRecs);
         }
+
+        //// 查漏补全
+        //for (AssignRec r : assignRecs) {
+        //    if (r.currentNum == r.totalNum) {
+        //        continue;
+        //    }
+        //    return getAssignedCompanyCd("", assignRecs);
+        //}
         return null;
+    }
+
+    /**
+     * 当委外已经委外过的案件时随机分配委外公司ID
+     *
+     * @param oldCompanyCd 已委外过的公司ID
+     * @param assignRecs   待委外的集合
+     * @return 新委外的公司Id
+     */
+    public String getRandomEntrustCompanyCd(String oldCompanyCd, List<AssignRec> assignRecs) {
+        int n = new Random().nextInt(assignRecs.size());// n in [0, assignRecs.size()]
+        System.out.println("random n: " + n);
+        String companyCd = assignRecs.get(n).companyCd;
+        if (!oldCompanyCd.equals(companyCd)) {
+            return companyCd;
+        }
+        return "";
     }
 
     public void assignCase() {
@@ -55,13 +76,7 @@ public class TestAssignCase {
         Map<String, BigDecimal> mapNum = new HashMap<>();
         initMap(mapNum);
         Set<String> keySet = mapNum.keySet();
-        for (String key : keySet) {
-            AssignRec assignRec = new AssignRec();
-            assignRec.currentNum = 0;
-            assignRec.totalNum = mapNum.get(key).intValue();
-            assignRec.companyCd = key;
-            assignRecs.add(assignRec);
-        }
+        initAssignRecs(assignRecs, mapNum, keySet);
 
         //已分案过的案件
         List entrustedList = initEntrustedList();
@@ -82,6 +97,17 @@ public class TestAssignCase {
         print(keys, mapNum);
     }
 
+    private static void initAssignRecs(List<AssignRec> assignRecs, Map<String, BigDecimal>
+            mapNum, Set<String> keySet) {
+        for (String key : keySet) {
+            AssignRec assignRec = new AssignRec();
+            assignRec.currentNum = 0;
+            assignRec.totalNum = mapNum.get(key).intValue();
+            assignRec.companyCd = key;
+            assignRecs.add(assignRec);
+        }
+    }
+
     private void print(List<String> keys, Map<String, BigDecimal> mapNum) {
         Set<String> keySet2 = mapNum.keySet();
         for (String key : keySet2) {
@@ -97,9 +123,7 @@ public class TestAssignCase {
 
         System.out.println("分案明细");
         for (String str : keys) {
-
             System.out.println(str);
-
         }
     }
 
@@ -139,7 +163,14 @@ public class TestAssignCase {
 
     public static void main(String[] args) {
         TestAssignCase assignCase = new TestAssignCase();
-        assignCase.assignCase();
+        //assignCase.assignCase();
 
+        List<AssignRec> assignRecs = new ArrayList<>();
+        Map<String, BigDecimal> mapNum = new HashMap<>();
+        assignCase.initMap(mapNum);
+        Set<String> keySet = mapNum.keySet();
+        initAssignRecs(assignRecs, mapNum, keySet);
+
+        System.out.println(assignCase.getRandomEntrustCompanyCd("101", assignRecs));
     }
 }
